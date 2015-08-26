@@ -32,8 +32,7 @@ public class Main {
 		if (args.length == 1) {
 			cfg = args[0];
 		}
-		System.out.println("Using config file: '" + cfg +"'.");
-		m.run(cfg);
+		m.start(cfg);
 	}
 
 
@@ -42,17 +41,23 @@ public class Main {
 	public Main(Gui gui) {
 		this.gui = gui;
 	}
-	private void run(String fileName) {
-		if (start(fileName) && gui.err.isEmpty()) {
+	private void start(String fileName) {
+		gui.showConfigFileWindow();
+		gui.err.info("Fichier de configuration: '" + fileName +"'.");
+		List<Target> targets = parseConfigFile(fileName);
+		if (targets.isEmpty()) {
+			System.exit(1);
+		}	
+		gui.err.info("");
+		if (run(targets) && gui.err.isEmpty()) {
 			System.exit(0);
 		}
 		else {
 			gui.showQuit();
 		}
 	}
-	private boolean start(String fileName) {
-		gui.showConfigFileWindow();
-		List<Target> targets = parseConfigFile(fileName);
+	private boolean run(List<Target> targets) {
+		
 		gui.showTargets(targets);
 		int idx = 1;
 		for (Target t: targets) {
@@ -133,19 +138,19 @@ public class Main {
 				
 			} 
 			catch (FileNotFoundException e) {
-				gui.err.println("Failed to find file: '" + src + "'.");
+				gui.err.println("Le fichier source '" + src + "' est introuvable.");
 				continue;
 			}
 			BufferedOutputStream out;
 			try {
 				out = new BufferedOutputStream(new FileOutputStream(dest));
 			} catch (FileNotFoundException e) {
-				gui.err.println("Failed to find file: '" + dest + "'.");
+				gui.err.println("Impossible de créer le fichier de destination '" + dest + "'.");
 				try {
 					in.close();
 				} 
 				catch (IOException e1) {
-					gui.err.println("Failed to close file: '" + rf.getSrc() + "'.");
+					gui.err.println("Impossible de fermer le fichier '" + rf.getSrc() + "'.");
 				}
 				continue;
 	
@@ -161,13 +166,13 @@ public class Main {
 						try {
 							in.close();
 						} catch (IOException e) {
-							gui.err.println("Failed to close file: '" + rf.getSrc() + "'.");
+							gui.err.println("Impossible de fermer le fichier '" + rf.getSrc() + "'.");
 							continue;
 						}
 						try {
 							out.close();
 						} catch (IOException e) {
-							gui.err.println("Failed to close file: '" + rf.getDest() + "'.");
+							gui.err.println("Impossible de fermer le fichier '" + rf.getDest() + "'.");
 							continue;
 						}
 						return false;
@@ -176,7 +181,7 @@ public class Main {
 						out.write(buff, 0, bcount);
 					}
 					catch (IOException e) {
-						gui.err.println("Write error on file '" + rf.getDest() + "' " + e.getMessage());
+						gui.err.println("Erreur d'écriture sur le fichier '" + rf.getDest() + "' " + e.getMessage());
 						break;
 					}
 					currsize += bcount;
@@ -193,20 +198,20 @@ public class Main {
 					}
 				}
 			} catch (IOException e) {
-				gui.err.println("Read error on file '" + rf.getSrc() + "'.");
+				gui.err.println("Erreur de lecture sur le fichier '" + rf.getSrc() + "'.");
 			}
 			
 			
 			try {
 				in.close();
 			} catch (IOException e) {
-				gui.err.println("Failed to close file: '" + rf.getSrc() + "'.");
+				gui.err.println("Impossible de fermer le fichier '" + rf.getSrc() + "'.");
 				continue;
 			}
 			try {
 				out.close();
 			} catch (IOException e) {
-				gui.err.println("Failed to close file: '" + rf.getDest() + "'.");
+				gui.err.println("Impossible de fermer le fichier '" + rf.getDest() + "'.");
 				continue;
 			}
 		}
@@ -223,7 +228,7 @@ public class Main {
 			if(gui.hasCanceled())
 				return false;
 			if (!dest.mkdirs()) {
-				gui.err.println("Failed to create directory: '" + dest + "'. Aborting.");
+				gui.err.println("Impossible de créer le répertoire '" + dest + "'.");
 				return false;
 			}
 			gui.target.progress((int)percent, dest, "Création du répertoire");
@@ -263,10 +268,12 @@ public class Main {
 		List<Target> targets = new ArrayList<Target> ();
 		// parse config file
 		try {
-			LineNumberReader in = new LineNumberReader(new FileReader(DEFAULT_CONFIG_FILE));
+			LineNumberReader in = new LineNumberReader(new FileReader(fileName));
 			String line;
 			try {
+				int linenumber = -1;
 				while ((line = in.readLine()) != null) {
+					linenumber++;
 					if (line.trim().isEmpty())
 						continue;
 					if (line.trim().startsWith("#"))
@@ -275,7 +282,7 @@ public class Main {
 						String src = line.substring("src: ".length());
 						line = in.readLine();
 						if (line == null) {
-							gui.err.println("Unexpected EOF in the config file.");
+							gui.err.println("Ligne " + linenumber + ": Fin de fichier inattendue dans le fichier de config.");
 							break;
 						}
 						if (line.startsWith("dest: ")) {
@@ -283,26 +290,26 @@ public class Main {
 							targets.add(new Target(src, dest));
 						}
 						else {
-							gui.err.println("Bad file format, the second line of the config file must start with 'dest: '.");
+							gui.err.println("Ligne " + linenumber + ": Mauvais format de fichier, la ligne doit commencer par 'dest: '.");
 							continue;
 						}
 					}
 					else {
-						gui.err.println("Bad file format, the first line of the config file must start with 'src: '.");
+						gui.err.println("Ligne " + linenumber + ": Mauvais format de fichier, la ligne doit commencer par 'src: '.");
 						continue;
 					}
 				}
 			}
 			catch (IOException e) {
-				gui.err.println("Reading error for the file "+ DEFAULT_CONFIG_FILE + ".");
+				gui.err.println("Erreur de lecture du fichier "+ fileName + ".");
 			}
 			in.close();
 		} 
 		catch (FileNotFoundException e) {
-			gui.err.println("The config file '" + DEFAULT_CONFIG_FILE + "' cannot be found.");
+			gui.err.println("Le fichier de configuration '" + fileName + "' est introuvable.");
 		} 
 		catch (IOException e) {
-			gui.err.println("Error closing config file " + DEFAULT_CONFIG_FILE + ".");
+			gui.err.println("Impossible de fermer le fichier de configuration '" + fileName + "'.");
 		} 
 	
 		return targets;

@@ -90,7 +90,7 @@ public class LogWindow {
 	}
 
 	public boolean isEmpty() {
-		return gui.isLogBtnEnabled() || win.isVisible();
+		return !(gui.isLogBtnEnabled() || win.isVisible());
 	}
 
 	public void setVisible(boolean b) {
