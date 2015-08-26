@@ -56,7 +56,9 @@ public class Main {
 		gui.showTargets(targets);
 		int idx = 1;
 		for (Target t: targets) {
+			gui.err.info("Inspection de la cible " + idx + ":");
 			gui.target.inspectTarget(t, idx++);
+			gui.err.info("  - Inspection de la source");
 			List<RelativeFile> srces = getSrcFiles(t);
 			if (srces == null) {
 				return false;
@@ -86,18 +88,21 @@ public class Main {
 					update.size(), updatesize);
 
 			
+			gui.err.info("  - Création des répertoires");
 			if (dirs.size() > 0) {
 				gui.target.setDirMode();
 				if (!createDirs(dirs))
 					return false;
 			}
 			
+			gui.err.info("  - Sauvegarde des fichiers (backup)");
 			if (backup.size() > 0) {
 				gui.target.setBackupMode();
 				if (!createFiles(backup, size))
 					return false;
 			}
 			
+			gui.err.info("  - Mise à jour des fichiers (update)");
 			if (update.size() > 0) {
 				gui.target.setUpdateMode();
 				if (gui.askIfUpdate(update)) {
@@ -105,6 +110,7 @@ public class Main {
 						return false;
 				}
 			}
+			gui.err.info("");
 		}
 		return true;
 	}
@@ -181,7 +187,7 @@ public class Main {
 					gui.target.progress((int)percent, (int) filepercent, dest, "Copie du fichier");
 					long t = System.currentTimeMillis() - inittime;
 					if (t - lastt > 500) {
-						long speed = (currsize * 1000) / t;
+						double speed = (currsize * 1000) / (double)t;
 						gui.target.updateSpeed(speed, size - currsize);
 						lastt = t;
 					}
@@ -231,7 +237,7 @@ public class Main {
 		List<RelativeFile> files = new ArrayList<RelativeFile>();
 		File src = target.getSrc();
 		if (!src.exists()) {
-			gui.err.println("The source does not exists!");
+			gui.err.println("La source '" + src + "' n'existe pas!");
 			return files;
 		}
 		LinkedList<File> dirs = new LinkedList<File>();

@@ -198,8 +198,8 @@ public class TargetPanel {
 		parent.update();
 	}
 	
-	public void updateSpeed(long speed, long left) {
-		speedLbl.setText(formatTime(left/speed) + " restantes (" + formatFileSize(speed) + "/s)");
+	public void updateSpeed(double speed, long left) {
+		speedLbl.setText(formatTime((long) (left/speed)) + " restantes (" + formatFileSize((long)speed) + "/s)");
 		
 	}
 
@@ -217,5 +217,4 @@ public class TargetPanel {
 		
 		return res;
 	}
-	
 }

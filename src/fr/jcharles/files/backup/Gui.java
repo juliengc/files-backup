@@ -157,4 +157,9 @@ public class Gui {
 	    } 
 		return false;
 	}
+
+	public boolean isLogBtnEnabled() {
+		return logBtn.isEnabled();
+	}
+
 }
