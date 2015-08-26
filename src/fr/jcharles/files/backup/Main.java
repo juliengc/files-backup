@@ -64,6 +64,7 @@ public class Main {
 			gui.err.info("Inspection de la cible " + idx + ":");
 			gui.target.inspectTarget(t, idx++);
 			gui.err.info("  - Inspection de la source");
+			gui.target.setSrcInspectMode();
 			List<RelativeFile> srces = getSrcFiles(t);
 			if (srces == null) {
 				return false;
@@ -237,7 +238,27 @@ public class Main {
 	}
 	
 
-
+	private boolean isSymlink(File file) {
+		  if (file == null)
+		    throw new NullPointerException("File must not be null");
+		  File canon;
+		  if (file.getParent() == null) {
+		    canon = file;
+		  } else {
+		    File canonDir;
+			try {
+				canonDir = file.getParentFile().getCanonicalFile();
+			} catch (IOException e) {
+				return false;
+			}
+		    canon = new File(canonDir, file.getName());
+		  }
+		  try {
+			return !canon.getCanonicalFile().equals(canon.getAbsoluteFile());
+		} catch (IOException e) {
+			return false;
+		}
+	}
 	private List<RelativeFile> getSrcFiles(Target target) {
 		List<RelativeFile> files = new ArrayList<RelativeFile>();
 		File src = target.getSrc();
@@ -249,9 +270,15 @@ public class Main {
 		dirs.add(src);
 		while(!dirs.isEmpty()) {
 			File dir = dirs.removeFirst();
+			if (isSymlink(dir)) {
+				continue;
+			}
+			gui.target.progress(0, dir, "Inspection de");
 			File[] content = dir.listFiles();
 			if(gui.hasCanceled())
 				return null;
+			if (content == null)
+				continue;
 			for (File f: content) {
 				files.add(new RelativeFile(target, f));
 				if (f.isDirectory()) {

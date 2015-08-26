@@ -17,10 +17,10 @@ public class TargetPanel {
 	private final JPanel target = new JPanel();
 	private final JPanel progress = new JPanel();
 	private final JProgressBar fileProgress = new JProgressBar(0, 10000);
-	private final JLabel fileProgressLbl = new JLabel("100,00%");
+	private final JLabel fileProgressLbl = new JLabel("000,00%");
 	private final JProgressBar totalProgress = new JProgressBar(0, 10000);
-	private final JLabel totalProgressLbl = new JLabel("100,00%");
-	private final JLabel actionLbl = new JLabel("Creation...");
+	private final JLabel totalProgressLbl = new JLabel("000,00%");
+	private final JLabel actionLbl = new JLabel("Inspection...");
 	private final JLabel speedLbl = new JLabel("0,00 o/s");
 	private final Gui parent;
 	private JPanel progressBorder = new JPanel(new CardLayout());
@@ -65,6 +65,7 @@ public class TargetPanel {
 		progress2.add(totalProgressLbl, BorderLayout.EAST);
 		progress.add(progress2);
 		pane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		
 	}
 	
 	public JPanel getPane() {
@@ -168,6 +169,19 @@ public class TargetPanel {
 		fileProgressLbl.setText(String.format("%6.2f%%", filepercent / 100f));	
 	}
 
+	public void setSrcInspectMode() {
+		progressBorder.setBorder(new TitledBorder("Inspection des fichiers sources"));
+		
+
+
+		fileProgress.setValue(10000);
+		fileProgressLbl.setText(String.format("%6.2f%%", 100f));
+		fileProgress.setEnabled(false);
+		fileProgressLbl.setEnabled(false);
+
+		parent.update();
+	}
+	
 	public void setDirMode() {
 		progressBorder.setBorder(new TitledBorder("Création des répertoires:"));
 
