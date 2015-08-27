@@ -125,16 +125,16 @@ public class Gui {
 		logBtn.setEnabled(e);
 	}
 
-	public boolean askIfUpdate(List<RelativeFile> update) {
+	public boolean askIfUpdate(Iterable<RelativeFile> update, int updateSize) {
 		JPanel pane = new JPanel(new BorderLayout(5,5));
 		JPanel txt = new JPanel(new GridLayout(2, 1));
-		if (update.size() == 1) {
-			txt.add(new JLabel("Depuis la dernière sauvegarde " + update.size() + 
+		if (updateSize == 1) {
+			txt.add(new JLabel("Depuis la dernière sauvegarde " + updateSize + 
 					" fichier a été modifié."));
 			txt.add(new JLabel("Etes-vous sûr de vouloir l'écraser?"));
 		}
 		else {
-			txt.add(new JLabel("Depuis la dernière sauvegarde " + update.size() + 
+			txt.add(new JLabel("Depuis la dernière sauvegarde " + updateSize + 
 					" fichiers ont été modifiés."));
 			txt.add(new JLabel("Etes-vous sûr de vouloir les écraser?"));
 		}

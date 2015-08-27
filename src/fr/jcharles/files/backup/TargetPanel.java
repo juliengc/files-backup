@@ -2,6 +2,7 @@ package fr.jcharles.files.backup;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.io.File;
@@ -17,13 +18,16 @@ public class TargetPanel {
 	private final JPanel target = new JPanel();
 	private final JPanel progress = new JPanel();
 	private final JProgressBar fileProgress = new JProgressBar(0, 10000);
-	private final JLabel fileProgressLbl = new JLabel("000,00%");
+	private final JLabel fileProgressLbl = new JLabel("0,00%");
 	private final JProgressBar totalProgress = new JProgressBar(0, 10000);
-	private final JLabel totalProgressLbl = new JLabel("000,00%");
+	private final JLabel totalProgressLbl = new JLabel("0,00%");
 	private final JLabel actionLbl = new JLabel("Inspection...");
 	private final JLabel speedLbl = new JLabel("0,00 o/s");
 	private final Gui parent;
 	private JPanel progressBorder = new JPanel(new CardLayout());
+	private JPanel totalpane;
+	private JPanel filepane;
+	private JPanel progress1;
 
 	
 	public TargetPanel (Gui parent) {
@@ -45,25 +49,33 @@ public class TargetPanel {
 		pane.add(progressBorder, BorderLayout.CENTER);
 		
 		progress.setBorder(new EmptyBorder(5, 5, 5, 5));
-		GridLayout gl = new GridLayout(5, 1);
-		gl.setVgap(5);
-		progress.setLayout(gl);
-		progress.add(actionLbl);
-		JPanel progress1 = new JPanel(new BorderLayout(5, 5));
+		progress.setLayout(new BorderLayout());
+		filepane = new JPanel(new BorderLayout());
+		filepane.add(actionLbl, BorderLayout.NORTH);
+		progress1 = new JPanel(new BorderLayout(5, 5));
 		progress1.add(fileProgress, BorderLayout.CENTER);
 		progress1.add(fileProgressLbl, BorderLayout.EAST);
-		progress.add(progress1);
-		progress.add(new JLabel(""));
-		tmp = new JPanel();
-		tmp.add(new JLabel("Progression totale:"));
-		tmp.add(speedLbl);
-		progress.add(tmp);
+		filepane.add(progress1, BorderLayout.SOUTH);
+		progress.add(filepane, BorderLayout.NORTH);
+
+		JPanel emptyness = new JPanel();
+		emptyness.setMinimumSize(new Dimension(2, 2));
+		progress.add(emptyness, BorderLayout.CENTER);
+		
+		
+		totalpane = new JPanel(new BorderLayout());
+		JPanel speedpane = new JPanel();
+		speedpane.add(new JLabel("Progression totale:"));
+		speedpane.add(speedLbl);
+		totalpane.add(speedpane, BorderLayout.NORTH);
 
 		JPanel progress2 = new JPanel(new BorderLayout(5, 5));
 
 		progress2.add(totalProgress, BorderLayout.CENTER);
 		progress2.add(totalProgressLbl, BorderLayout.EAST);
-		progress.add(progress2);
+		totalpane.add(progress2, BorderLayout.SOUTH);
+		progress.add(totalpane, BorderLayout.SOUTH);
+		
 		pane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		
 	}
@@ -171,44 +183,42 @@ public class TargetPanel {
 
 	public void setSrcInspectMode() {
 		progressBorder.setBorder(new TitledBorder("Inspection des fichiers sources"));
-		
-
-
-		fileProgress.setValue(10000);
-		fileProgressLbl.setText(String.format("%6.2f%%", 100f));
-		fileProgress.setEnabled(false);
-		fileProgressLbl.setEnabled(false);
+		progress1.setVisible(false);
+		totalpane.setVisible(false);
 
 		parent.update();
 	}
-	
+	public void setFileCompMode() {
+		progressBorder.setBorder(new TitledBorder("Comparaison fichiers sources/destinations"));
+		progress1.setVisible(false);
+		totalpane.setVisible(true);
+		speedLbl.setVisible(false);
+		parent.update();
+	}
 	public void setDirMode() {
 		progressBorder.setBorder(new TitledBorder("Création des répertoires:"));
-
-
-
-		fileProgress.setValue(10000);
-		fileProgressLbl.setText(String.format("%6.2f%%", 100f));
-		fileProgress.setEnabled(false);
-		fileProgressLbl.setEnabled(false);
-
+		//fileProgress.setValue(10000);
+		//fileProgressLbl.setText(String.format("%6.2f%%", 100f));
+		progress1.setVisible(false);
+		totalpane.setVisible(true);
+		speedLbl.setVisible(false);
 		parent.update();
 	}
 
 	public void setUpdateMode() {
 
 		progressBorder.setBorder(new TitledBorder("Mise à jour des fichiers:"));
-
-		fileProgress.setEnabled(true);
-		fileProgressLbl.setEnabled(true);
-
+		progress1.setVisible(true);
+		totalpane.setVisible(true);
+		speedLbl.setVisible(true);
 		parent.update();
 	}
 	public void setBackupMode() {
 		progressBorder.setBorder(new TitledBorder("Sauvegarde des fichiers:"));
-
-		fileProgress.setEnabled(true);
-		fileProgressLbl.setEnabled(true);
+		filepane.setVisible(true);
+		progress1.setVisible(true);
+		totalpane.setVisible(true);
+		speedLbl.setVisible(true);
 		parent.update();
 	}
 	

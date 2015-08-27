@@ -63,6 +63,7 @@ public class Main {
 		for (Target t: targets) {
 			gui.err.info("Inspection de la cible " + idx + ":");
 			gui.target.inspectTarget(t, idx++);
+			
 			gui.err.info("  - Inspection de la source");
 			gui.target.setSrcInspectMode();
 			List<RelativeFile> srces = getSrcFiles(t);
@@ -70,49 +71,33 @@ public class Main {
 				return false;
 			}
 			gui.target.setElementsCount(srces.size());
-			List<RelativeFile> dirs = new ArrayList<RelativeFile>();
-			List<RelativeFile> backup = new ArrayList<RelativeFile>();
-			List<RelativeFile> update = new ArrayList<RelativeFile>();
-			long size = 0;
-			long updatesize = 0;
-			for (RelativeFile rf: srces) {
-				if (rf.isDirectory()) {
-					if(!rf.destExists()) {
-						dirs.add(rf);
-					}
-				}
-				else if (!rf.destExists()){
-					backup.add(rf);
-					size += rf.getSize();
-				}
-				else if (rf.getSize() != rf.getDestSize()) {
-					update.add(rf);
-					updatesize += rf.getSize();
-				}
-			}
-			gui.target.setActionsCount(dirs.size(), backup.size(), size, 
-					update.size(), updatesize);
+			
+			gui.err.info("  - Inspection de la destination");	
+			gui.target.setFileCompMode();
+			sortSources(t, srces);
+			gui.target.setActionsCount(t.getDirsCount(), t.getBackupCount(), t.getSize(), 
+					t.getUpdateCount(), t.getUpdatesize());
 
 			
 			gui.err.info("  - Création des répertoires");
-			if (dirs.size() > 0) {
+			if (t.getDirsCount() > 0) {
 				gui.target.setDirMode();
-				if (!createDirs(dirs))
+				if (!createDirs(t.getDirs(), t.getDirsCount()))
 					return false;
 			}
 			
 			gui.err.info("  - Sauvegarde des fichiers (backup)");
-			if (backup.size() > 0) {
+			if (t.getBackupCount() > 0) {
 				gui.target.setBackupMode();
-				if (!createFiles(backup, size))
+				if (!createFiles(t.getBackup(), t.getSize()))
 					return false;
 			}
 			
 			gui.err.info("  - Mise à jour des fichiers (update)");
-			if (update.size() > 0) {
+			if (t.getUpdateCount() > 0) {
 				gui.target.setUpdateMode();
-				if (gui.askIfUpdate(update)) {
-					if (!createFiles(update, updatesize))
+				if (gui.askIfUpdate(t.getUpdate(), t.getUpdateCount())) {
+					if (!createFiles(t.getUpdate(), t.getUpdatesize()))
 						return false;
 				}
 			}
@@ -120,8 +105,26 @@ public class Main {
 		}
 		return true;
 	}
+	private void sortSources(Target t, List<RelativeFile> srces) {
+		int fnum = 0;
+		int fsize = srces.size();
+		for (RelativeFile rf: srces) {
+			gui.target.progress((fnum++ * 10000) / fsize, rf.getDest(), "Evaluation de");
+			if (rf.isDirectory()) {
+				if(!rf.destExists()) {
+					t.addDir(rf);
+				}
+			}
+			else if (!rf.destExists()){
+				t.addFileToBackup(rf);
+			}
+			else if (rf.getSize() != rf.getDestSize()) {
+				t.addFileToUpdate(rf);
+			}
+		}
+	}
 
-	private boolean createFiles(List<RelativeFile> backup, long size) {
+	private boolean createFiles(Iterable<RelativeFile> backup, long size) {
 		long currsize = 0;
 		long inittime = System.currentTimeMillis();
 		for (RelativeFile rf: backup) {
@@ -219,8 +222,8 @@ public class Main {
 		return true;
 	}
 
-	private boolean createDirs(List<RelativeFile> dirs) {
-		int dirsCount = dirs.size();
+	private boolean createDirs(Iterable<RelativeFile> dirs, int dirsCount) {
+	
 		int count = 0;
 		for (RelativeFile rf: dirs) {
 			count++;
